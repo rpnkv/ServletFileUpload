@@ -1,6 +1,7 @@
 package upload;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -8,17 +9,24 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @WebServlet(name = "upload.UploadServlet", urlPatterns = {"/upload/*"})
+@MultipartConfig
 public class UploadServlet extends HttpServlet {
 
-    FileUploader uploader = new FileUploader(getServletContext().getInitParameter("filePath"));
+    FileUploader uploader;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        uploader = new FileUploader(getServletContext().getInitParameter("filePath"));
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         switch (pathInfo){
-            case "init":
-
+            case "/init":
+                uploader.initUpload(request,response);
                 break;
-            case "chunk":
+            case "/chunk":
 
                 break;
             default:
@@ -26,6 +34,7 @@ public class UploadServlet extends HttpServlet {
                 break;
         }
     }
+
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.getWriter().write("Second servlet says hello, but it can't process 'GET' requests.");
@@ -58,12 +67,5 @@ public class UploadServlet extends HttpServlet {
         }
         response.setContentType("application/json");
         response.getWriter().write(json.toString());*/
-    }
-
-    @Override
-    public void destroy() {
-        System.out.println("DESTROY");
-        uploader.saveData();
-        super.destroy();
     }
 }

@@ -1,0 +1,22 @@
+{
+  "name": "fiieUpload",
+  "homepage": "https://github.com/theIerus/ServletFileUpload",
+  "authors": [
+    "traum <theierus@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "web/scr/bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "angular": "~1.5.0",
+    "bootstrap": "~3.3.6"
+  }
+}
