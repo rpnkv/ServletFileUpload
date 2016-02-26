@@ -15,13 +15,14 @@ public class FirstServlet extends HttpServlet {
 
     private ServletContext context;
 
+    private String path;
+
     @Override
     public void init() throws ServletException {
         super.init();
         context = getServletContext();
 
-        context.setAttribute("initTime",new Date());
-
+        path = context.getInitParameter("filePath");
     }
 
     @Override
@@ -36,45 +37,27 @@ public class FirstServlet extends HttpServlet {
     }
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        GregorianCalendar gc = new GregorianCalendar();
-        String timeJsp = request.getParameter("time");
 
-        String description = request.getParameter("description"); // Retrieves <input type="text" name="description">
         Part filePart = request.getPart("file"); // Retrieves <input type="file" name="file">
         String fileName = filePart.getSubmittedFileName();
         System.out.println(fileName);
         InputStream fileContent = filePart.getInputStream();
         System.out.println("file lenght, bytes: " + fileContent.available());
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fileContent));
+        FileOutputStream fos = new FileOutputStream(path + "/" + fileName);
 
-        String line;
 
-        System.out.println("File's content: ");
-        while ((line = reader.readLine()) != null){
-            System.out.println(line);
-        }
+        byte[] buffer = new byte[fileContent.available()];
 
-        float delta = ((float)(gc.getTimeInMillis() - Long.parseLong(timeJsp)))/1000;
-        request.setAttribute("res", delta);
-        request.setAttribute("title","Result page");
-        request.setAttribute("color","green");
-        request.setAttribute("email",this.getServletContext().getInitParameter("administrator"));
-        request.setAttribute("initTime",context.getAttribute("initTime"));
-        request.setAttribute("contextParams",getContextParamNames());
-        request.getRequestDispatcher("/result.jsp").forward(request, response);
+        fileContent.read(buffer);
+        fileContent.close();
+
+        fos.write(buffer);
+
+        fos.close();
+
+        request.setAttribute("attr","LELELELE");
+
     }
 
-    private String[] getContextParamNames(){
-        List<String> paramsList = new LinkedList<>();
-
-        Enumeration<String> paramsEnum = context.getAttributeNames();
-
-        while (paramsEnum.hasMoreElements()){
-            String attribute = paramsEnum.nextElement();
-            paramsList.add(attribute);
-        }
-
-        return paramsList.toArray(new String[paramsList.size()]);
-    }
 }
