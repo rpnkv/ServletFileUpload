@@ -1,5 +1,7 @@
-package upload;
+import test.Message;
+import upload.FileUploader;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
@@ -8,16 +10,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "upload.UploadServlet", urlPatterns = {"/upload/*"})
+@WebServlet(name = "UploadServlet", urlPatterns = {"/upload/*"})
 @MultipartConfig
 public class UploadServlet extends HttpServlet {
 
-    FileUploader uploader;
+    private ServletContext context;
+    private FileUploader uploader;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        uploader = new FileUploader(getServletContext().getInitParameter("filePath"));
+        context = getServletContext();
+        uploader = new FileUploader(context.getInitParameter("filePath"));
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

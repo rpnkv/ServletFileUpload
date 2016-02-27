@@ -34,8 +34,10 @@ myApp.service('fileUpload', ['$http', function ($http) {
 
     this.initFileUpload = function(file){
         var fd = new FormData();
+        fd.append('username',"repnikov");
         fd.append('fileName', file.name);
         fd.append('fileModifyDate',file.lastModified);
+        fd.append("fileSize",file.size);
 
         $http.post("/upload/init",fd,{
                 transformRequest: angular.identity,
