@@ -68,13 +68,13 @@ public class FileUploader {
         if (nextChunkStartIndex + FileData.chunkSize < fileSize) {
             nextChunkEndIndex = nextChunkStartIndex + FileData.chunkSize;
         } else {
-            nextChunkEndIndex = nextChunkStartIndex + (fileSize - nextChunkStartIndex + FileData.chunkSize);
+            nextChunkEndIndex = nextChunkStartIndex + (fileSize - nextChunkStartIndex);
         }
 
 
         JSONObject json = new JSONObject();
         try {
-            json.put("uploadStatus","uploading");
+            json.put("uploadStatus", "uploading");
             json.put("nextChunkStartIndex", nextChunkStartIndex);
             json.put("nextChunkEndIndex", nextChunkEndIndex);
         } catch (JSONException jse) {
@@ -86,29 +86,52 @@ public class FileUploader {
                 response.setContentType("application/json");
                 response.getWriter().write(json.toString());
                 System.out.println("requesting chunks from " + nextChunkStartIndex + " " + nextChunkEndIndex + "...");
-            }else{
-                response.sendError(500,jsonError);
+            } else {
+                response.sendError(500, jsonError);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void saveData(HttpServletRequest request,HttpServletResponse response) throws IOException, ServletException {
+    public void saveData(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         Part filePart = request.getPart("file"); // Retrieves <input type="file" name="file">
         FileId fileId = FileId.createFileIdByRequest(request);
 
         fileId = filesUploadsInfo.get(filesUploadsInfo.indexOf(fileId));
 
-        processIncomingData(filePart,fileId);
+        processIncomingData(filePart, fileId);
 
-        if(!fileId.getFileData().haveWeGotLastChunk(fileId.getSize())){
-            continueFileUpload(fileId,response);
-        }else{
-            System.out.println("we've got full file.");
+        if (!fileId.getFileData().haveWeGotLastChunk(fileId.getSize())) {
+            continueFileUpload(fileId, response);
+        } else {
+            endFileUpload(fileId, response);
         }
 
+    }
+
+    private void endFileUpload(FileId fileId, HttpServletResponse response) {
+        String jsonError=  null;
+
+        JSONObject json = new JSONObject();
+        try {
+            json.put("uploadStatus", "uploaded");
+        } catch (JSONException jse) {
+            jsonError = "Cannot create json for file " + fileId;
+        }
+
+        try {
+            if (jsonError == null) {
+                response.setContentType("application/json");
+                response.getWriter().write(json.toString());
+                System.out.println("We've got all file");
+            } else {
+                response.sendError(500, jsonError);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -118,11 +141,11 @@ public class FileUploader {
         fileId.getFileData().incChunksCounter();
     }
 
-    private void showStreamContent(Part fileContent){
+    private void showStreamContent(Part fileContent) {
         String newLine;
 
-        try(BufferedReader reader = new BufferedReader(new InputStreamReader(fileContent.getInputStream()))){
-            while ((newLine = reader.readLine()) != null){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileContent.getInputStream()))) {
+            while ((newLine = reader.readLine()) != null) {
                 System.out.println(newLine);
             }
         } catch (IOException e) {

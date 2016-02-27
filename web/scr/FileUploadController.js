@@ -22,6 +22,10 @@ function FileUploadController($scope, fileUploadService){
                     start: response.data.nextChunkStartIndex,
                     end:response.data.nextChunkEndIndex
                 },$scope.myFile);
+            }else{
+                if(response.data.uploadStatus === "uploaded"){
+                    alert("We've uploaded the file!")
+                }
             }
         },function(){
             alert("Fatal upload error")
