@@ -26,4 +26,12 @@ public class FileData {
     public void setChunksDownloaded(long chunksDownloaded) {
         this.chunksDownloaded = chunksDownloaded;
     }
+
+    public void incChunksCounter(){
+        chunksDownloaded++;
+    }
+
+    public boolean haveWeGotLastChunk(long size){
+        return (chunksDownloaded) * chunkSize >= size;
+    }
 }

@@ -9,6 +9,7 @@ public class FileId {
     private String fileName;
     private long size;
     private long modifyDate;
+    FileData fileData;
 
     public FileId(String username, String fileName, long size, long modifyDate) {
         this.username = username;
@@ -16,6 +17,8 @@ public class FileId {
         this.size = size;
         this.modifyDate = modifyDate;
     }
+
+
 
     public static FileId createFileIdByRequest(HttpServletRequest reqest) throws InvalidParameterException{
         String username = reqest.getParameter("username");
@@ -58,6 +61,7 @@ public class FileId {
         );
     }
 
+
     public String getUsername() {
         return username;
     }
@@ -74,6 +78,10 @@ public class FileId {
         return modifyDate;
     }
 
+    public FileData getFileData() {
+        return fileData;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -88,5 +96,9 @@ public class FileId {
 
     public void setModifyDate(long modifyDate) {
         this.modifyDate = modifyDate;
+    }
+
+    public void setFileData(FileData fileData) {
+        this.fileData = fileData;
     }
 }
