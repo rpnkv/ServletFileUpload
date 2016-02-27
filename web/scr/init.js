@@ -42,7 +42,20 @@ myApp.service('fileUpload', ['$http', function ($http) {
         $http.post("/upload/init",fd,{
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
+        }).then(function(response){
+            if(fd.has('file')){
+                fd.delete('file');
+            }
+
+            fd.append('file',file.slice(response.data.nextChunkStartIndex,response.data.nextChunkEndIndex));
+
+            $http.post("/upload/chunk",fd, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
             });
+        },function(){
+
+        });
     };
 
 }]);

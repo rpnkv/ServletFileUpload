@@ -1,7 +1,5 @@
 package models;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
-
 import javax.servlet.http.HttpServletRequest;
 import java.security.InvalidParameterException;
 
@@ -19,20 +17,31 @@ public class FileId {
         this.modifyDate = modifyDate;
     }
 
-    public static FileId createFileIdByRequest(HttpServletRequest req) throws InvalidParameterException{
-        String username = req.getParameter("username");
-        String filename = req.getParameter("fileName");
+    public static FileId createFileIdByRequest(HttpServletRequest reqest) throws InvalidParameterException{
+        String username = reqest.getParameter("username");
+        String filename = reqest.getParameter("fileName");
+
+        checkStringParameters(username,filename);
+
         long fileSize;
         long fileModifyDate;
 
         try {
-            fileSize= Long.parseLong(req.getParameter("fileSize"));
-            fileModifyDate = Long.parseLong(req.getParameter("fileModifyDate"));
+            fileSize= Long.parseLong(reqest.getParameter("fileSize"));
+            fileModifyDate = Long.parseLong(reqest.getParameter("fileModifyDate"));
         }catch (NumberFormatException ex){
             throw new InvalidParameterException("some required params have not been received");
         }
 
         return new FileId(username,filename,fileSize,fileModifyDate);
+    }
+
+    private static void checkStringParameters(String username, String fileName) throws InvalidParameterException{
+        if(username == null)
+            throw new InvalidParameterException("no username set");
+
+        if(fileName == null)
+            throw new InvalidParameterException("no filename set");
     }
 
     @Override
