@@ -3,15 +3,14 @@ package models;
 import javax.servlet.http.HttpServletRequest;
 import java.security.InvalidParameterException;
 
-public class FileId {
+public class UploadData {
 
-    private String username;
-    private String fileName;
-    private long size;
-    private long modifyDate;
-    FileData fileData;
+    protected String username;
+    protected String fileName;
+    protected long size;
+    protected long modifyDate;
 
-    public FileId(String username, String fileName, long size, long modifyDate) {
+    public UploadData(String username, String fileName, long size, long modifyDate) {
         this.username = username;
         this.fileName = fileName;
         this.size = size;
@@ -19,10 +18,9 @@ public class FileId {
     }
 
 
-
-    public static FileId createFileIdByRequest(HttpServletRequest reqest) throws InvalidParameterException{
-        String username = reqest.getParameter("username");
-        String filename = reqest.getParameter("fileName");
+    public static UploadData createFileIdByRequest(HttpServletRequest request) throws InvalidParameterException{
+        String username = request.getParameter("username");
+        String filename = request.getParameter("fileName");
 
         checkStringParameters(username,filename);
 
@@ -30,13 +28,13 @@ public class FileId {
         long fileModifyDate;
 
         try {
-            fileSize= Long.parseLong(reqest.getParameter("fileSize"));
-            fileModifyDate = Long.parseLong(reqest.getParameter("fileModifyDate"));
+            fileSize= Long.parseLong(request.getParameter("fileSize"));
+            fileModifyDate = Long.parseLong(request.getParameter("fileModifyDate"));
         }catch (NumberFormatException ex){
             throw new InvalidParameterException("some required params have not been received");
         }
 
-        return new FileId(username,filename,fileSize,fileModifyDate);
+        return new UploadData(username,filename,fileSize,fileModifyDate);
     }
 
     private static void checkStringParameters(String username, String fileName) throws InvalidParameterException{
@@ -49,10 +47,10 @@ public class FileId {
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof FileId))
+        if(!(obj instanceof UploadData))
             return false;
 
-        FileId comparableObject = (FileId) obj;
+        UploadData comparableObject = (UploadData) obj;
 
         return (comparableObject.username.equals(username) &&
                 comparableObject.fileName.equals(fileName) &&
@@ -78,10 +76,6 @@ public class FileId {
         return modifyDate;
     }
 
-    public FileData getFileData() {
-        return fileData;
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
@@ -96,9 +90,5 @@ public class FileId {
 
     public void setModifyDate(long modifyDate) {
         this.modifyDate = modifyDate;
-    }
-
-    public void setFileData(FileData fileData) {
-        this.fileData = fileData;
     }
 }

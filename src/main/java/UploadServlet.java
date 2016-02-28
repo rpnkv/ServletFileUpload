@@ -1,4 +1,4 @@
-import upload.FileUploader;
+import upload.FileHandler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -14,13 +14,13 @@ import java.io.IOException;
 public class UploadServlet extends HttpServlet {
 
     private ServletContext context;
-    private FileUploader uploader;
+    private FileHandler uploader;
 
     @Override
     public void init() throws ServletException {
         super.init();
         context = getServletContext();
-        uploader = new FileUploader(context.getInitParameter("filePath"));
+        uploader = new FileHandler(context.getInitParameter("filePath"));
     }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -30,7 +30,7 @@ public class UploadServlet extends HttpServlet {
                 uploader.initUpload(request,response);
                 break;
             case "/chunk":
-                uploader.saveData(request,response);
+                uploader.processIncomingDataChunk(request, response);
                 break;
             default:
                 System.out.println("Unknown URL");
