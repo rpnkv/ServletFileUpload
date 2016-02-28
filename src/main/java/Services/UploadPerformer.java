@@ -54,11 +54,7 @@ public class UploadPerformer {
 
             uploadData.incDownloadedChunksCounter();
 
-            if(abstractUploadData.getSize() <= uploadData.getChunksDownloaded() * uploadData.getChunkSize()){
-                return DataChunkSavingResult.fileUploaded;
-            }else{
-                return DataChunkSavingResult.chunkSaved;
-            }
+            return uploadData.allChunksAreUploaded() ? DataChunkSavingResult.fileUploaded : DataChunkSavingResult.chunkSaved;
 
         }catch (IOException ex){
             return DataChunkSavingResult.ioError;
@@ -75,6 +71,8 @@ public class UploadPerformer {
 
         is.read(incomingBytes);
 
+        is.close();
+
         return incomingBytes;
     }
 
@@ -82,6 +80,18 @@ public class UploadPerformer {
         FileOutputStream fos = new FileOutputStream(file,true);
         fos.write(bytes);
         fos.close();
+    }
+
+    public void resetUploadData(UploadData abstractUploadData) throws ClassCastException, IOException {
+        DetailedUploadData uploadData = (DetailedUploadData) abstractUploadData;
+
+        if(uploadData.allChunksAreUploaded()){
+            File fileToErase = uploadData.getPath().toFile();
+            fileToErase.delete();
+            fileToErase.createNewFile();
+            uploadData.resetChunksCounter();
+        }
+
     }
 
     public void appendSuccessUploadMessageToResponse(HttpServletResponse response) {

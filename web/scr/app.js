@@ -1,4 +1,4 @@
-var fileUploadApp = angular.module("fileUploadApp",[]);
+var fileUploadApp = angular.module("fileUploadApp",["ui.bootstrap"]);
 
 fileUploadApp.directive("fileModel", ["$parse", FileModel]);
 

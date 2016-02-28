@@ -17,11 +17,14 @@ public class UploadsCollection {
         uploadDataList = new ArrayList<>(5);
     }
 
-    public void addNew(UploadData uploadData){
+    public UploadData addNew(UploadData uploadData){
 
         String newFileName = generateNewFileName(uploadData);
-        uploadDataList.add(new DetailedUploadData(uploadData, Paths.get(FileHandler.getFileDir(),newFileName),0));
+        DetailedUploadData newUploadData = new DetailedUploadData(uploadData, Paths.get(FileHandler.getFileDir(),newFileName),0);
 
+        uploadDataList.add(newUploadData);
+
+        return newUploadData;
     }
 
     private String generateNewFileName(UploadData uploadData){
@@ -38,7 +41,7 @@ public class UploadsCollection {
     }
 
     public boolean contains(UploadData uploadData){
-        return uploadDataList.indexOf(uploadData) > 0;
+        return uploadDataList.indexOf(uploadData) >= 0;
     }
 
     public boolean delete(UploadData uploadData){
