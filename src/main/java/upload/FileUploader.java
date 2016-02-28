@@ -1,5 +1,6 @@
 package upload;
 
+import Services.JSONOperator;
 import models.FileData;
 import models.FileId;
 import org.json.JSONException;
@@ -9,9 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
@@ -57,7 +56,6 @@ public class FileUploader {
     }
 
     private void continueFileUpload(FileId fileId, HttpServletResponse response) {
-        String jsonError = null;
 
         FileId uploadData = filesUploadsInfo.get(filesUploadsInfo.indexOf(fileId));
 
@@ -71,27 +69,16 @@ public class FileUploader {
             nextChunkEndIndex = nextChunkStartIndex + (fileSize - nextChunkStartIndex);
         }
 
+        JSONOperator.appendMapAsJSONToResponse(response, uploadDataToMap(nextChunkStartIndex,nextChunkEndIndex,"uploading"));
+    }
 
-        JSONObject json = new JSONObject();
-        try {
-            json.put("uploadStatus", "uploading");
-            json.put("nextChunkStartIndex", nextChunkStartIndex);
-            json.put("nextChunkEndIndex", nextChunkEndIndex);
-        } catch (JSONException jse) {
-            jsonError = "Cannot create json for file " + fileId;
-        }
+    private Map<String,String> uploadDataToMap(long nextChunkStartIndex, long nextChunkEndIndex, String uploadStatus){
+        Map<String,String> values = new HashMap<>(6);
+        values.put("uploadStatus", uploadStatus);
+        values.put("nextChunkStartIndex", String.valueOf(nextChunkStartIndex));
+        values.put("nextChunkEndIndex", String.valueOf(nextChunkEndIndex));
 
-        try {
-            if (jsonError == null) {
-                response.setContentType("application/json");
-                response.getWriter().write(json.toString());
-                System.out.println("requesting chunks from " + nextChunkStartIndex + " " + nextChunkEndIndex + "...");
-            } else {
-                response.sendError(500, jsonError);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return values;
     }
 
     public void saveData(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -136,23 +123,30 @@ public class FileUploader {
     }
 
     private void processIncomingData(Part filePart, FileId fileId) {
-        showStreamContent(filePart);
 
-        fileId.getFileData().incChunksCounter();
-    }
-
-    private void showStreamContent(Part fileContent) {
-        String newLine;
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(fileContent.getInputStream()))) {
-            while ((newLine = reader.readLine()) != null) {
-                System.out.println(newLine);
+        try {
+            if(appendDataToFile(filePart.getInputStream(), fileId.getFileData().getPath())){
+                fileId.getFileData().incChunksCounter();
             }
         } catch (IOException e) {
             System.out.println(e);
         }
 
+    }
 
+    private boolean appendDataToFile(InputStream inputStream, String fileName) throws IOException{
+
+        try(FileOutputStream fos = new FileOutputStream(fileName,true)) {
+            byte[] incomingBytes = new byte[inputStream.available()];
+
+            inputStream.read(incomingBytes);
+
+            fos.write(incomingBytes);
+            return true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private String createPathForFile(FileId id) {
