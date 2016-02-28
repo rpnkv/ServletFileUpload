@@ -82,7 +82,7 @@ public class UploadPerformer {
         fos.close();
     }
 
-    public void resetUploadData(UploadData abstractUploadData) throws ClassCastException, IOException {
+    public void resetUploadDataIfFileWasUploaded(UploadData abstractUploadData) throws ClassCastException, IOException {
         DetailedUploadData uploadData = (DetailedUploadData) abstractUploadData;
 
         if(uploadData.allChunksAreUploaded()){

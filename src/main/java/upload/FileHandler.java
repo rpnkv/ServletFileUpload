@@ -44,7 +44,7 @@ public class FileHandler {
             return uploads.addNew(uploadData);
         }else{
             UploadData existingUploadData = uploads.getContainingEqual(uploadData);
-            uploadPerformer.resetUploadData(existingUploadData);
+            uploadPerformer.resetUploadDataIfFileWasUploaded(existingUploadData);
             return existingUploadData;
         }
     }
