@@ -85,7 +85,7 @@ public class FileHandler {
         }
     }
 
-    private void sendUploadSuccessInfo(HttpServletResponse response) {
+    private void sendUploadSuccessInfo(HttpServletResponse response) throws IOException {
 
         uploadPerformer.appendSuccessUploadMessageToResponse(response);
 

@@ -94,7 +94,7 @@ public class UploadPerformer {
 
     }
 
-    public void appendSuccessUploadMessageToResponse(HttpServletResponse response) {
+    public void appendSuccessUploadMessageToResponse(HttpServletResponse response) throws IOException {
         Map<String,String> params = new HashMap<>(4);
         params.put("uploadStatus","uploaded");
 
