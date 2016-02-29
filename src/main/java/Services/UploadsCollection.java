@@ -1,8 +1,6 @@
 package Services;
 
-import models.DetailedUploadData;
 import models.UploadData;
-import upload.FileHandler;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,20 +9,22 @@ import java.util.List;
 
 public class UploadsCollection {
 
-    List<DetailedUploadData> uploadDataList;
+    List<UploadData> uploadDataList;
+    String fileDir;
 
-    public UploadsCollection() {
+    public UploadsCollection(String fileDir) {
         uploadDataList = new ArrayList<>(5);
+        this.fileDir = fileDir;
     }
 
     public UploadData addNew(UploadData uploadData){
 
         String newFileName = generateNewFileName(uploadData);
-        DetailedUploadData newUploadData = new DetailedUploadData(uploadData, Paths.get(FileHandler.getFileDir(),newFileName),0);
+        uploadData.setAdditionalInformation(Paths.get(fileDir,newFileName),0);
 
-        uploadDataList.add(newUploadData);
+        uploadDataList.add(uploadData);
 
-        return newUploadData;
+        return uploadData;
     }
 
     private String generateNewFileName(UploadData uploadData){

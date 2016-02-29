@@ -1,6 +1,7 @@
 package models;
 
 import javax.servlet.http.HttpServletRequest;
+import java.nio.file.Path;
 import java.security.InvalidParameterException;
 
 public class UploadData {
@@ -10,12 +11,17 @@ public class UploadData {
     protected long size;
     protected long modifyDate;
 
+    Path path;
+    long chunksDownloaded = 0;
+    private int chunkSize = 1024 * 1024 * 8;
+
     public UploadData(String username, String fileName, long size, long modifyDate) {
         this.username = username;
         this.fileName = fileName;
         this.size = size;
         this.modifyDate = modifyDate;
     }
+
 
 
     public static UploadData createFileIdByRequest(HttpServletRequest request) throws InvalidParameterException{
@@ -59,7 +65,6 @@ public class UploadData {
         );
     }
 
-
     public String getUsername() {
         return username;
     }
@@ -91,4 +96,40 @@ public class UploadData {
     public void setModifyDate(long modifyDate) {
         this.modifyDate = modifyDate;
     }
+
+
+
+
+
+
+
+    public void setAdditionalInformation(Path path, long chunksDownloaded) {
+        this.path = path;
+        this.chunksDownloaded = chunksDownloaded;
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    public long getChunksDownloaded() {
+        return chunksDownloaded;
+    }
+
+    public int getChunkSize() {
+        return chunkSize;
+    }
+
+    public void incDownloadedChunksCounter(){
+        chunksDownloaded++;
+    }
+
+    public void resetChunksCounter(){
+        chunksDownloaded = 0;
+    }
+
+    public boolean allChunksAreUploaded(){
+        return size <= chunksDownloaded * chunkSize;
+    }
 }
+

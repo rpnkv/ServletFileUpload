@@ -27,7 +27,7 @@ public class UploadServlet extends HttpServlet {
         String pathInfo = request.getPathInfo();
         switch (pathInfo){
             case "/init":
-                uploader.initUpload(request,response);
+                uploader.tryInitUpload(request, response);
                 break;
             case "/chunk":
                 uploader.processIncomingDataChunk(request, response);

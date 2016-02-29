@@ -1,7 +1,5 @@
 package Services;
 
-import enums.DataChunkSavingResult;
-import models.DetailedUploadData;
 import models.UploadData;
 
 import javax.servlet.http.HttpServletResponse;
@@ -13,26 +11,20 @@ import java.util.Map;
 public class UploadPerformer {
 
 
-    public void appendNextDataChunkRequestToResponse(UploadData abstractUploadData, HttpServletResponse response)
-            throws IOException, ClassCastException {
-        try {
-            DetailedUploadData uploadData = (DetailedUploadData) abstractUploadData;
+    public void appendNextDataChunkRequestToResponse(UploadData uploadData, HttpServletResponse response) throws IOException {
 
-            long nextChunkStartIndex = uploadData.getChunksDownloaded() * uploadData.getChunkSize(),
-                    fileSize = uploadData.getSize(),
-                    nextChunkEndIndex;
+        long nextChunkStartIndex = uploadData.getChunksDownloaded() * uploadData.getChunkSize(),
+                nextChunkEndIndex = defineNextChunkEndIndex(nextChunkStartIndex, uploadData);
 
-            if (nextChunkStartIndex + uploadData.getChunkSize() < fileSize) {
-                nextChunkEndIndex = nextChunkStartIndex + uploadData.getChunkSize();
-            } else {
-                nextChunkEndIndex = nextChunkStartIndex + (fileSize - nextChunkStartIndex);
-            }
+        JSONOperator.appendMapAsJSONToResponse(response, uploadDataToMap(nextChunkStartIndex, nextChunkEndIndex, "uploading"));
 
-            JSONOperator.appendMapAsJSONToResponse(response, uploadDataToMap(nextChunkStartIndex, nextChunkEndIndex, "uploading"));
+    }
 
-        } catch (ClassCastException e) {
-            response.sendError(503, "Upload data is corrupted. Cannot continue file upload.");
-        }
+    private long defineNextChunkEndIndex(long nextChunkStartIndex, UploadData uploadData) {
+        return (nextChunkStartIndex + uploadData.getChunkSize() < uploadData.getSize()) ?
+                nextChunkStartIndex + uploadData.getChunkSize() :
+                nextChunkStartIndex + (uploadData.getSize() - nextChunkStartIndex);
+
     }
 
     private Map<String, String> uploadDataToMap(long nextChunkStartIndex, long nextChunkEndIndex, String uploadStatus) {
@@ -44,23 +36,21 @@ public class UploadPerformer {
         return values;
     }
 
-    public DataChunkSavingResult saveDataChunk(Part dataChunk, UploadData abstractUploadData) throws ClassCastException {
-        try {
-            byte[] incomingBytes = getIncomingBytes(dataChunk);
+    //returns false if file wasn't uploaded completely
+    public boolean trySaveDataChunk(Part dataChunk, UploadData uploadData) throws IOException {
 
-            DetailedUploadData uploadData = (DetailedUploadData) abstractUploadData;
+        return saveDataChunk(dataChunk, uploadData);
 
-            saveBytesToFile(incomingBytes,uploadData.getPath().toFile());
+    }
 
-            uploadData.incDownloadedChunksCounter();
+    private boolean saveDataChunk(Part dataChunk, UploadData uploadData) throws IOException {
+        byte[] incomingBytes = getIncomingBytes(dataChunk);
 
-            return uploadData.allChunksAreUploaded() ? DataChunkSavingResult.fileUploaded : DataChunkSavingResult.chunkSaved;
+        saveBytesToFile(incomingBytes, uploadData.getPath().toFile());
 
-        }catch (IOException ex){
-            return DataChunkSavingResult.ioError;
-        }catch (ClassCastException ex){
-            return DataChunkSavingResult.descriptionError;
-        }
+        uploadData.incDownloadedChunksCounter();
+
+        return uploadData.allChunksAreUploaded();
     }
 
     private byte[] getIncomingBytes(Part dataChunk) throws IOException {
@@ -77,15 +67,14 @@ public class UploadPerformer {
     }
 
     private void saveBytesToFile(byte[] bytes, File file) throws IOException {
-        FileOutputStream fos = new FileOutputStream(file,true);
+        FileOutputStream fos = new FileOutputStream(file, true);
         fos.write(bytes);
         fos.close();
     }
 
-    public void resetUploadDataIfFileWasUploaded(UploadData abstractUploadData) throws ClassCastException, IOException {
-        DetailedUploadData uploadData = (DetailedUploadData) abstractUploadData;
+    public void resetUploadDataIfFileWasUploaded(UploadData uploadData) throws IOException {
 
-        if(uploadData.allChunksAreUploaded()){
+        if (uploadData.allChunksAreUploaded()) {
             File fileToErase = uploadData.getPath().toFile();
             fileToErase.delete();
             fileToErase.createNewFile();
@@ -95,9 +84,9 @@ public class UploadPerformer {
     }
 
     public void appendSuccessUploadMessageToResponse(HttpServletResponse response) throws IOException {
-        Map<String,String> params = new HashMap<>(4);
-        params.put("uploadStatus","uploaded");
+        Map<String, String> params = new HashMap<>(4);
+        params.put("uploadStatus", "uploaded");
 
-        JSONOperator.appendMapAsJSONToResponse(response,params);
+        JSONOperator.appendMapAsJSONToResponse(response, params);
     }
 }

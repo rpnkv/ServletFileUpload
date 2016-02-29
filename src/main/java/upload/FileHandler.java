@@ -13,39 +13,37 @@ import java.security.InvalidParameterException;
 
 public class FileHandler {
 
-    private static String FILE_DIR;
     private UploadsCollection uploads;
     private UploadPerformer uploadPerformer;
 
     public FileHandler(String FILE_DIR) {
-        FileHandler.FILE_DIR = FILE_DIR;
-        uploads = new UploadsCollection();
+        uploads = new UploadsCollection(FILE_DIR);
         uploadPerformer = new UploadPerformer();
     }
 
 
-    public void initUpload(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void tryInitUpload(HttpServletRequest request, HttpServletResponse response) throws IOException {
         try {
-            UploadData newUploadData = UploadData.createFileIdByRequest(request);
-
-            newUploadData = insertEntryInCollection(newUploadData);
-
-            requestNextDataChunk(newUploadData, response);
-
+            initUpload(request,response);
         } catch (InvalidParameterException ex) {
             response.setStatus(500);
-        } catch (ClassCastException ex){
-            response.sendError(500, "Upload data is corrupted. Cannot continue file upload.");
         }
     }
 
-    private UploadData insertEntryInCollection(UploadData uploadData) throws IOException {
+    private void initUpload(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        UploadData newUploadData = UploadData.createFileIdByRequest(request);
+
+        insertEntryInCollection(newUploadData);
+
+        requestNextDataChunk(newUploadData, response);
+    }
+
+    private void insertEntryInCollection(UploadData uploadData) throws IOException {
         if (!uploads.contains(uploadData)) {
-            return uploads.addNew(uploadData);
+            uploads.addNew(uploadData);
         }else{
             UploadData existingUploadData = uploads.getContainingEqual(uploadData);
             uploadPerformer.resetUploadDataIfFileWasUploaded(existingUploadData);
-            return existingUploadData;
         }
     }
 
@@ -61,20 +59,12 @@ public class FileHandler {
             return;
         }
 
-        switch (uploadPerformer.saveDataChunk(filePart, uploadData)) {
-            case chunkSaved:
-                requestNextDataChunk(uploadData, response);
-                break;
-            case descriptionError:
-                response.sendError(500, "Upload data is corrupted. Cannot continue file upload.");
-                break;
-            case ioError:
-                response.sendError(500, "Cannot perform file operations now.");
-                break;
-            case fileUploaded:
-                sendUploadSuccessInfo(response);
-                break;
+        if(uploadPerformer.trySaveDataChunk(filePart,uploadData)){
+            sendUploadSuccessInfo(response);
+        }else{
+            requestNextDataChunk(uploadData,response);
         }
+
     }
 
     private void requestNextDataChunk(UploadData uploadData, HttpServletResponse response) {
@@ -89,9 +79,5 @@ public class FileHandler {
 
         uploadPerformer.appendSuccessUploadMessageToResponse(response);
 
-    }
-
-    public static String getFileDir() {
-        return FILE_DIR;
     }
 }
